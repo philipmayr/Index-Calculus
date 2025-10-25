@@ -9,7 +9,7 @@ g = 229401
 h = 171020
 
 # exponential index
-x = nil
+x = 0
 
 # factor base 𝓕
 factor_base = [2, 3, 5, 7]
@@ -60,6 +60,33 @@ for i in 1..1000
     end
 end
 
+EMC = exponent_multiplicity_counts
+
+# puts EMC
+
 smooth_number_logarithms.each do |relation|
     puts "i æ #{relation[:index]}, number æ #{relation[:number]}, exponents æ #{relation[:exponent_multiplicity_counts].inspect}"
 end
+
+# find j where gʲh is factorable over 𝓕
+
+for j in 1..p - 1
+    modular_power_of_g = exponentiate_modularly(g, j, p)
+    modular_power_of_g_multiple_of_h = (modular_power_of_g * h) % p
+    
+    is_smooth, exponent_multiplicity_counts, leftover_cofactor = factor_number_over_base(modular_power_of_g_multiple_of_h, factor_base)
+    
+    if is_smooth
+        break
+    end
+end
+
+congruences = [38292, 146548, 1841, 71128]
+
+for i in 0...exponent_multiplicity_counts.size
+    x += congruences[i] * exponent_multiplicity_counts[i]
+end
+
+x -= j
+
+puts x % (p - 1)
