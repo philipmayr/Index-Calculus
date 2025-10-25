@@ -1,9 +1,12 @@
 # p is a safe prime (two times a prime number plus one)
-p = 1283
+# p = 1283
+p = 232487
 # g is a primitive root modulo p
-g = 264
+# g = 264
+g = 229401
 # h is a prime modulated power of primitive root g
-h = 910
+# h = 910
+h = 171020
 
 # exponential index
 x = nil
@@ -58,5 +61,5 @@ for i in 1..1000
 end
 
 smooth_number_logarithms.each do |relation|
-    puts "i æ #{relation[:index]} number æ #{relation[:number]} exponents æ #{relation[:exponent_multiplicity_counts].inspect}"
+    puts "i æ #{relation[:index]}, number æ #{relation[:number]}, exponents æ #{relation[:exponent_multiplicity_counts].inspect}"
 end
