@@ -64,9 +64,9 @@ EMC = exponent_multiplicity_counts
 
 # puts EMC
 
-smooth_number_logarithms.each do |relation|
-    puts "i æ #{relation[:index]}, number æ #{relation[:number]}, exponents æ #{relation[:exponent_multiplicity_counts].inspect}"
-end
+# smooth_number_logarithms.each do |relation|
+#     puts "i æ #{relation[:index]}, number æ #{relation[:number]}, exponents æ #{relation[:exponent_multiplicity_counts].inspect}"
+# end
 
 # find j where gʲh is factorable over 𝓕
 
@@ -81,7 +81,107 @@ for j in 1..p - 1
     end
 end
 
-congruences = [38292, 146548, 1841, 71128]
+modulus = 116243
+
+matrix = [[5, 2,  0,  3,  482],
+          [2, 9,  0,  0,  600],
+          [9, 4,  0,  0,  876],
+          [6, 0,  2,  0,  948]]
+          
+matrix[0] = smooth_number_logarithms[0][:exponent_multiplicity_counts].dup.append(smooth_number_logarithms[0][:index])
+matrix[1] = smooth_number_logarithms[1][:exponent_multiplicity_counts].dup.append(smooth_number_logarithms[1][:index])
+matrix[2] = smooth_number_logarithms[2][:exponent_multiplicity_counts].dup.append(smooth_number_logarithms[2][:index])
+matrix[3] = smooth_number_logarithms[3][:exponent_multiplicity_counts].dup.append(smooth_number_logarithms[3][:index])
+
+# print matrix[0]
+
+def modulate(number, modulus)
+    number %= modulus
+    number += modulus if number < 0
+    number
+end
+
+def find_modular_multiplicative_inverse(base, modulus)
+    base %= modulus
+    raise "No inverse for 0 modulo #{modulus}" if base == 0
+    t0, t1 = 0, 1
+    r0, r1 = modulus, base
+    while r1 != 0
+        q = r0 / r1
+        r0, r1 = r1, r0 - q * r1
+        t0, t1 = t1, t0 - q * t1
+    end
+    t0 % modulus
+end
+
+# ERO1
+def swap_roles(first_row, second_row)
+    return second_row.dup, first_row.dup
+end
+
+# ERO2
+def scale_row(row, constant)
+    row.map { |element| modulate(element.to_i * constant.to_i, modulus) }
+end
+
+# ERO3
+def add_multiplied_row(source_row, target_row, constant, modulus)
+    target_row.each_with_index.map do |element, index|
+        modulate(element.to_i + constant.to_i * source_row[index].to_i, modulus)
+    end
+end
+
+def ensure_pivot_found_in_matrix!(matrix, column, modulus)
+    if matrix[column][column] % modulus == 0
+        swap_row_index = (column + 1...matrix.length).find { |row_index| matrix[row_index][column] % modulus != 0 }
+        if swap_row_index
+            matrix[column], matrix[swap_row_index] = swap_roles(matrix[column], matrix[swap_row_index])
+        else
+            raise "Zero pivot found in column #{column} modulo #{modulus}."
+        end
+    end
+end
+
+matrix.map! { |row| row.map { |element| modulate(element, modulus) } }
+
+# --- Forward elimination
+n = matrix.length
+(0...n - 1).each do |column|
+    ensure_pivot_found_in_matrix!(matrix, column, modulus)
+    pivot = matrix[column][column] % modulus
+    inverse_pivot = find_modular_multiplicative_inverse(pivot, modulus)
+    ((column + 1)...n).each do |row_index|
+        # multiplier = matrix[row_index][column] / pivot  (mod modulus)
+        multiplier = (matrix[row_index][column] * inverse_pivot) % modulus
+        # new_row = target_row - multiplier * pivot_row  (mod modulus)
+        matrix[row_index] = add_multiplied_row(matrix[column], matrix[row_index], (-multiplier) % modulus, modulus)
+    end
+end
+
+# --- Backward substitution
+solution = Array.new(n, 0)
+(n - 1).downto(0) do |i|
+    right_hand_side = matrix[i][n] % modulus
+    sum_of_products = 0
+    ((i + 1)...n).each { |j| sum_of_products = (sum_of_products + matrix[i][j] * solution[j]) % modulus }
+    right_hand_side_minus_sum = (right_hand_side - sum_of_products) % modulus
+    inverse_diagonal = find_modular_multiplicative_inverse(matrix[i][i] % modulus, modulus)
+    solution[i] = (right_hand_side_minus_sum * inverse_diagonal) % modulus
+end
+
+# print matrix and solutions
+# print matrix[0]
+# puts
+# print matrix[1]
+# puts
+# print matrix[2]
+# puts
+# print matrix[3]
+# puts
+
+# print solution
+
+congruences = solution.dup
 
 for i in 0...exponent_multiplicity_counts.size
     x += congruences[i] * exponent_multiplicity_counts[i]
