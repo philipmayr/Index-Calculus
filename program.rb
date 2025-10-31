@@ -1,7 +1,12 @@
 # p is a safe prime (two times a prime number plus one)
 # p = 1283
 p = 232487
-# g is a primitive root modulo p
+# g is a primitive root modulo p: a primitive root is a generator of all elements in the group
+# all elements can be written as powers of a primitive root (generator) modulo p
+# a number g is a primitive root modulo p if g is coprime to p
+# the powers of g modulo p generate all elements of the multiplicative group modulo p
+# the multiplicative group modulo p is the set of integers from 1 to p - 1 that are invertible under multiplication modulo p
+# an element is invertible modulo p if it is coprime to p
 # g = 264
 g = 229401
 # h is a prime modulated power of primitive root g
